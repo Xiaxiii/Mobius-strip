@@ -112,6 +112,8 @@ import { casinoSource, ensureTables, playCasino, type CasinoOutcome } from './co
 export const SETTINGS_KEY = 'rlzc';
 
 export interface Settings {
+  /** 自定义界面名称；留空使用默认名称 */
+  appName: string;
   depths: { token: number; progress: number; turn: number; ledger: number; live: number; format: number };
   ball: { x: number | null; y: number | null };
   showBall: boolean;
@@ -199,7 +201,14 @@ export const DEFAULT_SUB_API: SubApiSettings = {
   timeoutSec: 60,
 };
 
+export const DEFAULT_APP_NAME = '回廊种菜系统';
+
+export function appName(): string {
+  return state.settings.appName || DEFAULT_APP_NAME;
+}
+
 const DEFAULT_SETTINGS: Settings = {
+  appName: '',
   depths: { token: 4, progress: 4, turn: 0, ledger: 4, live: 4, format: 0 },
   ball: { x: null, y: null },
   showBall: true,
@@ -261,6 +270,7 @@ export function loadSettings(): void {
   const merged: Settings = {
     ...structuredClone(DEFAULT_SETTINGS),
     ...saved,
+    appName: typeof saved.appName === 'string' ? saved.appName.trim().slice(0, 30) : '',
     depths: { ...DEFAULT_SETTINGS.depths, ...(saved.depths ?? {}), ledger: (saved.depths as any)?.ledger ?? DEFAULT_SETTINGS.depths.ledger },
     ball: { ...DEFAULT_SETTINGS.ball, ...(saved.ball ?? {}) },
     customPacks: Array.isArray(saved.customPacks) ? saved.customPacks.filter((p) => validatePack(p).length === 0) : [],

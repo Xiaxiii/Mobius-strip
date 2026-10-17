@@ -1,7 +1,9 @@
 import { createApp, watch } from 'vue';
 import App from './App.vue';
 import css from './style.css?inline';
-import { saveSettings, state } from '../app';
+import drawerCss from './drawer.css?inline';
+import { RECENT_UPDATES } from './updates';
+import { appName, DEFAULT_APP_NAME, saveSettings, state } from '../app';
 import { checkForUpdate, runUpdate, type UpdateInfo } from '../st/updater';
 import manifest from '../../manifest.json';
 import { actionToast, toast } from '../st/context';
@@ -41,11 +43,13 @@ function addMenuButton(tries = 0): void {
   item.id = MENU_ID;
   item.className = 'list-group-item flex-container flexGap5 interactable';
   item.tabIndex = 0;
-  item.title = '打开回廊种菜系统面板';
   const icon = document.createElement('div');
   icon.className = 'fa-solid fa-seedling extensionsMenuExtensionButton';
   const label = document.createElement('span');
-  label.textContent = '回廊种菜系统';
+  watch(appName, (name) => {
+    label.textContent = name;
+    item.title = `打开${name}面板`;
+  }, { immediate: true });
   item.append(icon, label);
   item.addEventListener('click', () => {
     state.panelOpen = !state.panelOpen;
@@ -79,15 +83,69 @@ function addSettingsDrawer(tries = 0): void {
   const title = el('div', 'flex-container alignitemscenter margin0');
   const badge = el('small', 'rlzc-update-badge', '有更新');
   badge.style.cssText = 'display:none;margin-left:6px;padding:0 6px;border-radius:8px;background:var(--SmartThemeQuoteColor,#d88a2a);color:#fff;font-weight:normal;';
-  title.append(el('b', '', '回廊种菜系统'), badge);
+  const heading = el('b');
+  watch(appName, (name) => (heading.textContent = name), { immediate: true });
+  title.append(heading, badge);
   header.append(title, el('div', 'inline-drawer-icon fa-solid fa-circle-chevron-down down'));
   const content = el('div', 'inline-drawer-content');
+  const style = el('style', '', drawerCss);
+  wrap.append(style);
 
-  const open = el('div', 'menu_button menu_button_icon', '打开面板');
-  open.prepend(el('i', 'fa-solid fa-seedling'));
+  const button = (text: string, icon?: string) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'menu_button menu_button_icon';
+    if (icon) b.append(el('i', `fa-solid ${icon}`));
+    b.append(el('span', '', text));
+    return b;
+  };
+  const nameRow = el('div', 'rlzc-set-row');
+  const nameValue = el('span', 'rlzc-set-value');
+  watch(appName, (name) => (nameValue.textContent = name), { immediate: true });
+  const rename = button('修改', 'fa-pencil');
+  rename.title = '修改名称（留空恢复默认）';
+  const nameActions = el('div', 'rlzc-set-actions');
+  nameActions.append(rename);
+  nameRow.append(el('span', '', '名称'), nameValue, nameActions);
+  rename.addEventListener('click', () => {
+    const input = document.createElement('input');
+    input.className = 'text_pole rlzc-set-value';
+    input.maxLength = 30;
+    input.value = appName();
+    input.placeholder = DEFAULT_APP_NAME;
+    input.setAttribute('aria-label', '扩展名称');
+    const save = button('保存', 'fa-check');
+    const cancel = button('取消', 'fa-xmark');
+    nameValue.replaceWith(input);
+    nameActions.replaceChildren(save, cancel);
+    const finish = (apply: boolean) => {
+      if (apply) {
+        const name = input.value.trim().slice(0, 30);
+        state.settings.appName = name === DEFAULT_APP_NAME ? '' : name;
+        saveSettings();
+      }
+      input.replaceWith(nameValue);
+      nameActions.replaceChildren(rename);
+      rename.focus();
+    };
+    save.addEventListener('click', () => finish(true));
+    cancel.addEventListener('click', () => finish(false));
+    input.addEventListener('keydown', (event) => {
+      if (event.isComposing) return;
+      if (event.key === 'Enter' || event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        finish(event.key === 'Enter');
+      }
+    });
+    input.focus();
+    input.select();
+  });
+
+  const open = button('打开面板', 'fa-seedling');
   open.addEventListener('click', () => (state.panelOpen = true));
 
-  const reset = el('div', 'menu_button menu_button_icon', '悬浮球回到默认位置');
+  const reset = button('悬浮球回到默认位置');
   reset.addEventListener('click', () => {
     state.settings.ball = { x: null, y: null };
     state.settings.showBall = true;
@@ -104,18 +162,20 @@ function addSettingsDrawer(tries = 0): void {
   label.append(box, el('span', '', '显示悬浮球'));
   watch(() => state.settings.showBall, (v) => (box.checked = v), { immediate: true });
 
-  const buttons = el('div', 'flex-container');
+  const buttons = el('div', 'rlzc-set-actions rlzc-set-top');
   buttons.append(open, reset);
 
   // ── 版本与更新 ──
-  const updateRow = el('div', 'flex-container alignitemscenter');
+  const updateRow = el('div', 'rlzc-set-row');
   const status = el('small', 'rlzc-update-status', '正在检查更新…');
-  const checkBtn = el('div', 'menu_button menu_button_icon', '检查更新');
-  const updateBtn = el('div', 'menu_button menu_button_icon', '立即更新');
-  const reloadBtn = el('div', 'menu_button menu_button_icon', '刷新页面');
+  const checkBtn = button('检查更新', 'fa-rotate');
+  const updateBtn = button('立即更新');
+  const reloadBtn = button('刷新页面');
   updateBtn.style.display = 'none';
   reloadBtn.style.display = 'none';
-  updateRow.append(status, checkBtn, updateBtn, reloadBtn);
+  const updateActions = el('div', 'rlzc-set-actions');
+  updateActions.append(checkBtn, updateBtn, reloadBtn);
+  updateRow.append(el('span', '', '版本'), el('span', 'rlzc-set-value', manifest.version), updateActions);
   let info: UpdateInfo | null = null;
   let busy = false;
   // 同一次打开里只挑一句：弹窗和这里的状态小字一致
@@ -185,7 +245,16 @@ function addSettingsDrawer(tries = 0): void {
   // 页面加载约1秒后自动检查一次（服务器端 git fetch，不阻塞界面）
   setTimeout(() => void check(true), 1000);
 
-  content.append(buttons, label, updateRow, el('small', '', '也可以从输入框左侧的魔棒菜单打开面板。'));
+  const card = el('div', 'rlzc-set-card');
+  card.append(nameRow, updateRow, status, label);
+  const updates = el('details', 'rlzc-set-updates');
+  updates.append(el('summary', '', '更新说明'));
+  for (const update of RECENT_UPDATES.slice(0, 2)) {
+    const entry = el('div', 'rlzc-set-update');
+    entry.append(el('b', '', update.title), el('div', '', update.text));
+    updates.append(entry);
+  }
+  content.append(buttons, card, updates, el('small', '', '也可以从输入框左侧的魔棒菜单打开面板。'));
   drawer.append(header, content);
   wrap.append(drawer);
   container.append(wrap);

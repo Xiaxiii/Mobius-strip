@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { state, type TabId } from '../app';
+import { appName, state, type TabId } from '../app';
 import { confirmBox } from '../st/context';
 import SystemTab from './tabs/SystemTab.vue';
 import LedgerTab from './tabs/LedgerTab.vue';
@@ -26,9 +26,9 @@ async function pick(id: TabId) {
 
 <template>
   <div class="rlzc-backdrop" @click.self="state.panelOpen = false">
-    <section class="rlzc-panel" role="dialog" aria-label="回廊种菜系统">
+    <section class="rlzc-panel" role="dialog" :aria-label="appName()">
       <header class="rlzc-head">
-        <span class="rlzc-title">回廊种菜系统</span>
+        <span class="rlzc-title">{{ appName() }}</span>
         <button class="rlzc-icon" title="关闭" @click="state.panelOpen = false">×</button>
       </header>
       <nav class="rlzc-tabs">

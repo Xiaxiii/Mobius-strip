@@ -1,0 +1,32 @@
+/* 只影响本扩展的酒馆设置抽屉。 */
+#rlzc-settings-drawer .rlzc-set-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+#rlzc-settings-drawer .rlzc-set-actions .menu_button { margin: 0; width: auto; }
+#rlzc-settings-drawer .rlzc-set-top { margin: 8px 0 12px; }
+#rlzc-settings-drawer .rlzc-set-card,
+#rlzc-settings-drawer .rlzc-set-updates {
+  border: 1px solid var(--SmartThemeBorderColor, #8884);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+#rlzc-settings-drawer .rlzc-set-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 0;
+}
+#rlzc-settings-drawer .rlzc-set-row + .rlzc-set-row { border-top: 1px dashed var(--SmartThemeBorderColor, #8884); }
+#rlzc-settings-drawer .rlzc-set-value { flex: 1; min-width: 60px; overflow-wrap: anywhere; }
+#rlzc-settings-drawer input.rlzc-set-value { width: 0; margin: 0; }
+#rlzc-settings-drawer .rlzc-update-status { display: block; opacity: .75; margin: 4px 0 10px; overflow-wrap: anywhere; }
+#rlzc-settings-drawer .rlzc-set-updates summary { cursor: pointer; font-weight: bold; }
+#rlzc-settings-drawer .rlzc-set-update { margin-top: 12px; overflow-wrap: anywhere; }
+#rlzc-settings-drawer .rlzc-set-update div { margin-top: 4px; opacity: .85; }

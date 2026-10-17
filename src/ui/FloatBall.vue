@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { isOnAir, saveSettings, state } from '../app';
+import { appName, isOnAir, saveSettings, state } from '../app';
 import { INF_PATH } from './icons';
 
 const SIZE = 48;
@@ -82,7 +82,7 @@ onBeforeUnmount(() => window.removeEventListener('resize', place));
     class="rlzc-ball"
     :class="{ 'is-active': active, 'is-warn': warn, 'has-ring': ring !== null }"
     :style="{ left: pos.x + 'px', top: pos.y + 'px' }"
-    title="回廊种菜系统（可拖动）"
+    :title="`${appName()}（可拖动）`"
     @pointerdown.stop="down"
     @pointermove.stop="move"
     @pointerup.stop="up"
