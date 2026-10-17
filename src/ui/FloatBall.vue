@@ -76,16 +76,25 @@ onBeforeUnmount(() => window.removeEventListener('resize', place));
 </script>
 
 <template>
+  <!-- Shadow DOM 不隔离冒泡事件；兼容鼠标/触屏事件和拖动后的 click 都要拦住，避免 ST 关闭当前抽屉。 -->
   <button
+    type="button"
     class="rlzc-ball"
     :class="{ 'is-active': active, 'is-warn': warn, 'has-ring': ring !== null }"
     :style="{ left: pos.x + 'px', top: pos.y + 'px' }"
     title="回廊种菜系统（可拖动）"
-    @pointerdown="down"
-    @pointermove="move"
-    @pointerup="up"
-    @pointercancel="up"
-    @click="toggle"
+    @pointerdown.stop="down"
+    @pointermove.stop="move"
+    @pointerup.stop="up"
+    @pointercancel.stop="up"
+    @mousedown.stop
+    @mousemove.stop
+    @mouseup.stop
+    @touchstart.stop
+    @touchmove.stop
+    @touchend.stop
+    @touchcancel.stop
+    @click.stop="toggle"
   >
     <svg v-if="ring !== null" class="rlzc-ball-ring" viewBox="0 0 48 48" aria-hidden="true">
       <circle class="rlzc-ball-ring-base" cx="24" cy="24" r="22.5" />
