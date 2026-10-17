@@ -167,7 +167,8 @@ function addSettingsDrawer(tries = 0): void {
 
   // ── 版本与更新 ──
   const updateRow = el('div', 'rlzc-set-row');
-  const status = el('small', 'rlzc-update-status', '正在检查更新…');
+  const status = el('small', 'rlzc-update-status');
+  status.hidden = true;
   const checkBtn = button('检查更新', 'fa-rotate');
   const updateBtn = button('立即更新');
   const reloadBtn = button('刷新页面');
@@ -185,6 +186,7 @@ function addSettingsDrawer(tries = 0): void {
   const check = async (auto = false) => {
     if (busy) return;
     busy = true;
+    status.hidden = auto;
     status.textContent = '正在检查更新…';
     updateBtn.style.display = 'none';
     try {
@@ -212,6 +214,7 @@ function addSettingsDrawer(tries = 0): void {
   const doUpdate = async (): Promise<boolean> => {
     if (!info || busy) return false;
     busy = true;
+    status.hidden = false;
     status.textContent = '正在更新…';
     updateBtn.style.display = 'none';
     try {
@@ -248,10 +251,15 @@ function addSettingsDrawer(tries = 0): void {
   const card = el('div', 'rlzc-set-card');
   card.append(nameRow, updateRow, status, label);
   const updates = el('details', 'rlzc-set-updates');
-  updates.append(el('summary', '', '更新说明'));
+  const updateSummary = el('summary');
+  updateSummary.append(el('span', 'rlzc-set-updates-title', '更新说明'), el('small', 'rlzc-set-updates-version', RECENT_UPDATES[0]?.version ?? ''));
+  updates.append(updateSummary);
   for (const update of RECENT_UPDATES.slice(0, 2)) {
     const entry = el('div', 'rlzc-set-update');
-    entry.append(el('b', '', update.title), el('div', '', update.text));
+    entry.append(el('b', '', update.version));
+    const list = document.createElement('ul');
+    for (const item of update.items) list.append(el('li', '', item));
+    entry.append(list);
     updates.append(entry);
   }
   content.append(buttons, card, updates, el('small', '', '也可以从输入框左侧的魔棒菜单打开面板。'));
